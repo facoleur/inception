@@ -1,0 +1,23 @@
+networks:
+
+services:
+  wordpress:
+    container_name: wordpress
+    build:
+      context: wordpress/
+    expose:
+      - "9000"
+
+  nginx:
+    container_name: nginx
+    build:
+      context: nginx/
+    ports:
+      - "443:443"
+
+  mariadb:
+    container_name: mariadb
+    build:
+      context: mariadb/
+    expose:
+      - "3306"
