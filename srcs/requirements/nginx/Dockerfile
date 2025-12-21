@@ -1,9 +1,13 @@
-FROM debian:bullseye
+FROM alpine:3.20
 
-RUN apt-get update && apt-get install -y nginx && rm -rf /var/lib/apt/lists/*
+RUN apk add --no-cache nginx curl vim openssl gettext
 
-COPY ./conf /etc/nginx/nginx.conf
+RUN mkdir -p /etc/nginx/ssl /var/run/nginx
 
-EXPOSE 80
+COPY conf/nginx.conf /etc/nginx/nginx.conf.template
+COPY html/ /var/www/html/
+COPY tools/entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
 
-CMD ["nginx", "-g", "daemon off;"]
+EXPOSE 443
+ENTRYPOINT ["/entrypoint.sh"]
