@@ -8,6 +8,7 @@ mkdir -p /run/mysqld "$DATADIR"
 chown -R mysql:mysql /run/mysqld "$DATADIR"
 
 if [ ! -f "$DATADIR/.init_done" ]; then
+
 	if [ ! -d "$DATADIR/mysql" ]; then
 		mariadb-install-db \
 			--user=mysql \
@@ -19,6 +20,8 @@ if [ ! -f "$DATADIR/.init_done" ]; then
 		--datadir="$DATADIR" \
 		--socket="$SOCKET" \
 		--skip-networking &
+
+	temp_pid=$!
 
 	while ! mysqladmin --socket="$SOCKET" ping --silent; do
 		sleep 1
@@ -33,6 +36,7 @@ FLUSH PRIVILEGES;
 EOF
 
 	mysqladmin --socket="$SOCKET" -u root -p"${SQL_ROOT_PASSWORD}" shutdown
+
 	touch "$DATADIR/.init_done"
 fi
 

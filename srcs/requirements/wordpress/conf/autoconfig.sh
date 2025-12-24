@@ -2,14 +2,23 @@
 
 set -e
 
+ELAPSED_TIME=0
+WAIT_TIME=30
+
 until mariadb -h mariadb -u"${SQL_USER}" -p"${SQL_PASSWORD}" -e "SELECT 1;" >/dev/null 2>&1; do
+	if [ "$ELAPSED_TIME" -ge "$WAIT_TIME" ]; then
+		echo "MariaDB not reachable -> aborting" >&2
+		exit 1
+	fi
 	echo "Waiting for MariaDB..." >&2
 	sleep 2
+	ELAPSED_TIME=$((ELAPSED_TIME + 2))
 done
 
 if [ ! -f /var/www/html/wp-config.php ]; then
-	echo "Generating custom wp-config.php..."
-	wp config create --allow-root \
+	echo "Generating custom wp-config.php"
+	wp config create \
+		--allow-root \
 		--dbname="${SQL_DATABASE}" \
 		--dbuser="${SQL_USER}" \
 		--dbpass="${SQL_PASSWORD}" \
@@ -19,7 +28,7 @@ if [ ! -f /var/www/html/wp-config.php ]; then
 fi
 
 if ! wp core is-installed --allow-root --path='/var/www/html'; then
-	echo "Running initial WordPress installation..."
+	echo "Running initial WP installation"
 	wp core install --allow-root \
 		--url="${WP_URL}" \
 		--title="${WP_TITLE}" \
@@ -35,4 +44,9 @@ if ! wp core is-installed --allow-root --path='/var/www/html'; then
 			--allow-root \
 			--path='/var/www/html'
 	fi
+
+else
+	echo "WP already installed"
 fi
+
+exec php-fpm8.2 -F

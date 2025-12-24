@@ -1,13 +1,21 @@
+.PHONY: all up down build clean re
+
+DATA_DIR = /home/lferro/data
+COMPOSE = docker compose -f ./srcs/docker-compose.yml
+
 all: up
 
 up:
-	docker compose -f ./srcs/docker-compose.yml  up -d
+	mkdir -p $(DATA_DIR)/wordpress $(DATA_DIR)/mariadb
+	$(COMPOSE) up -d
 
 down:
-	docker compose -f ./srcs/docker-compose.yml  down
+	$(COMPOSE) down
 
 build:
-	docker compose -f ./srcs/docker-compose.yml  build --no-cache
+	$(COMPOSE) build --no-cache
 
-clean: down
-	docker system prune -af --volumes
+clean:
+	$(COMPOSE) down -v --rmi local
+
+re: clean up
